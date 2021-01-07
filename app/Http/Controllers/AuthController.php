@@ -15,16 +15,40 @@ class AuthController extends Controller
     
     }
 
+    public function changepass(Request $request)
+    {
+        try {
+            // $record = Product::findOrFail($request->id);
+            $record = User::findOrFail($request->id);
+            if(password_verify($request->oldpass, $record->password)){
+                if($request->newpass == $request->repass){
+                    $record->password = Hash::make($request->newpass);
+                    $record->save();
+                    return response()->json(['status' => true, 'message' => 'Succesfully updated.']);
+                }else{
+                    return response()->json(['status' => true, 'message' => 'Password not matched.']);
+                }
+            }else{
+                return response()->json(['status' => true, 'message' => 'Your password is incorrect.']);
+            }
+
+        } catch (Exception $e) {
+            return response()->json(['status' => false]);
+        }
+    }
+
 
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
-
-        if (! $token = auth('api')->attempt($credentials)) {
-            return response()->json(['status' => false,'error' => 'Invalid username or password']);
+        
+        if ($token = auth('api')->attempt($credentials)) {
+            $userInfo=auth('api')->user();
+            // return $this->respondWithToken($token);
+            return response()->json(['token' => $token , 'id' => $userInfo->id]);
         }
 
-        return $this->respondWithToken($token);
+        return response()->json(['status' => false,'error' => 'Invalid username or password']);
     }
 
 

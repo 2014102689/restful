@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -51,18 +52,34 @@ class AuthController extends Controller
         return response()->json(['status' => false,'error' => 'Invalid username or password']);
     }
 
+    public function delete($id){
+
+        try {
+            $record = User::findOrFail($id);
+            $record->delete(); 
+
+            return response()->json(['status' => true, 'message' => 'Succesfully deleted']);
+            
+        } catch (\Throwable $th) {
+            return response()->json(['status' => false]);
+        }
+
+    }
+
 
     public function register(Request $request)
     {
-        
-        $record = new User;
-        $record->name = $request->name;
-        $record->email = $request->email;
-        $record->password = Hash::make($request->password);
-
-        $record->save();
-
-        return response()->json(['status' => true, 'message' => 'User created']);
+        if(Student::findOrFail($request->id)){
+            $record = new User;
+            $record->email = $request->email;
+            $record->studentID = $request->id;
+            $record->password = Hash::make($request->password);
+    
+            $record->save();
+    
+            return response()->json(['status' => true, 'message' => 'User created']);
+        }
+        return response()->json(['status' => true, 'message' => 'Creation failed']);       
 
     }
 
